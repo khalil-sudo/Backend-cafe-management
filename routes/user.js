@@ -6,6 +6,9 @@ const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 
+var auth = require("../services/authentication");
+var checkRole = require("../services/checkRole");
+
 router.post("/signup", (req, res) => {
   let user = req.body;
   query = "select email,password,role,status from user where email = ?";
@@ -80,7 +83,7 @@ router.post("/forgotPassword", (req, res) => {
       if (results.length <= 0) {
         return res
           .status(200)
-          .json({ message: "password sent succesfully to your email 1." });
+          .json({ message: "password sent succesfully to your email°." });
       } else {
         var mailOptions = {
           from: process.env.EMAIL,
@@ -103,6 +106,66 @@ router.post("/forgotPassword", (req, res) => {
         return res
           .status(200)
           .json({ message: "password sent succesfully to your email." });
+      }
+    } else {
+      return res.status(500).json(err);
+    }
+  });
+});
+router.get("/get", auth.authenticateToken, checkRole.checkRole, (req, res) => {
+  var query =
+    "select id,name,contactNumber,status from user where role ='user'";
+  connection.query(query, (err, results) => {
+    if (!err) {
+      return res.status(200).json(results);
+    } else {
+      return res.status(500).json(err);
+    }
+  });
+});
+
+router.patch("/update", auth.authenticateToken, (req, res) => {
+  let user = req.body;
+  var query = "update user set status=? where id=?";
+  connection.query(query, [user.status, user.id], (err, results) => {
+    if (!err) {
+      if (results.affectedRows == 0) {
+        return res.status(404).json({ message: "user id does not exist" });
+      }
+      return res.status(200).json({ message: "user updated succesfully" });
+    } else {
+      return res.status(500).json(err);
+    }
+  });
+});
+
+router.get("/checkToken", auth.authenticateToken, (req, res) => {
+  return res.status(200).json({ message: "true" });
+});
+
+router.post("/changePassword", auth.authenticateToken, (req, res) => {
+  const user = req.body;
+  const email = res.locals.email;
+  var query = "select * from user where email=? and password=?";
+  connection.query(query, [email, user.oldPassword], (err, results) => {
+    if (!err) {
+      if (results.length <= 0) {
+        return res.status(400).json({ message: "incorrect old password" });
+      } else if (results[0].password == user.oldPassword) {
+        query = "update user set password=? where email=?";
+        connection.query(query, [user.newPassword, email], (err, results) => {
+          if (!err) {
+            return res
+              .status(200)
+              .json({ message: "password updated succesfully" });
+          } else {
+            return res.status(500).json(err);
+          }
+        });
+      } else {
+        return res
+          .status(400)
+          .json({ message: "something went wrong. Please try again later" });
       }
     } else {
       return res.status(500).json(err);
