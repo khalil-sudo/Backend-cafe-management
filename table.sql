@@ -21,12 +21,18 @@ INSERT into
         status,
         role
     )
-values
-(
+values (
         'Admin',
         '1234567890',
         'admin@gmail.com',
         'password',
         'true',
         'admin'
-    )
+    );
+
+create table
+    category(
+        id int NOT NULL AUTO_INCREMENT,
+        name varchar(255) NOT NULL,
+        PRIMARY KEY(id)
+    );
