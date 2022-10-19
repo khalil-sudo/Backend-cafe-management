@@ -36,3 +36,14 @@ create table
         name varchar(255) NOT NULL,
         PRIMARY KEY(id)
     );
+
+create table
+    product(
+        id int not null AUTO_INCREMENT,
+        name VARCHAR(255) not NULL,
+        categoryId INTEGER not NULL,
+        description VARCHAR(255),
+        price INTEGER,
+        status VARCHAR(20),
+        PRIMARY KEY(id)
+    );
